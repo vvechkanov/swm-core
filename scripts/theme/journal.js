@@ -4,7 +4,8 @@
  * Строится по флагам world.* журнала. В списке соседей — только системы, которые видит пользователь.
  */
 import {
-  readSystems, dist, RANGE, COLORS, CLASS_NAMES, STATUS_NAMES, sectorScene, sameRoute
+  readSystems, dist, RANGE, COLORS, CLASS_NAMES, STATUS_NAMES, sectorScene, sameRoute,
+  readContracts, isActiveContract, contractLine
 } from "../sector/data.js";
 import { hexA } from "../sector/textures.js";
 
@@ -70,6 +71,13 @@ function buildCard(journal) {
       <em>${dist(o, s).toFixed(1)} св. л.</em></a>`;
   }).join("");
 
+  const contracts = readContracts().filter(c => isActiveContract(c) && c.sys === s.id)
+    .sort((a, b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1));
+  const contractRows = contracts.map(c => `<a class="swm-contract ${c.status}" data-swm-open="${esc(c.journal.id)}">
+      <span class="d"></span>
+      <span>${esc(c.name)}${c.status === "taken" ? " <em>· в работе</em>" : ""}<small>${esc(contractLine(c))}</small></span>
+      <em>${c.threat ? "●".repeat(c.threat) : ""}</em></a>`).join("");
+
   const el = document.createElement("section");
   el.className = "swm-card";
   el.innerHTML = `
@@ -78,6 +86,7 @@ function buildCard(journal) {
     <h2 class="swm-title">${esc(s.far ? "?" : s.name)}</h2>
     ${tags.length ? `<div class="swm-tags">${tags.join("")}</div>` : ""}
     <div class="swm-stats">${stats.join("")}</div>
+    ${contracts.length ? `<div class="swm-kick">Заказы здесь</div><div class="swm-reach swm-contracts">${contractRows}</div>` : ""}
     ${s.far ? "" : `<div class="swm-kick">Одним прыжком отсюда</div>
     <div class="swm-reach">${reach || `<p class="none">— никого в пределах ${RANGE} св. лет</p>`}</div>`}`;
   el.querySelectorAll("[data-swm-open]").forEach(a => a.addEventListener("click", ev => {

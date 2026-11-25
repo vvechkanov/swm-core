@@ -97,7 +97,8 @@ const scheduleRedraw = foundry.utils.debounce(() => {
   if (canvas.ready && isSectorScene(canvas.scene)) canvas.swmSector?.redraw();
 }, 150);
 
-const isSystemJournal = (doc, changes) => !!(doc?.flags?.world?.sys || changes?.flags?.world?.sys !== undefined);
+const isSystemJournal = (doc, changes) => !!(doc?.flags?.world?.sys || doc?.flags?.world?.contract
+  || changes?.flags?.world?.sys !== undefined || changes?.flags?.world?.contract !== undefined);
 
 Hooks.on("createJournalEntry", doc => { if (active() && isSystemJournal(doc)) scheduleRedraw(); });
 Hooks.on("deleteJournalEntry", doc => { if (active() && isSystemJournal(doc)) scheduleRedraw(); });

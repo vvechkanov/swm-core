@@ -516,6 +516,12 @@ body.swm-theme .inline-roll {
 .swm-card .swm-reach em { font-style: normal; color: #7fa9cf; font-size: 13px; }
 .swm-card .swm-reach .none { color: #7fa9cf; font-size: 14px; margin: 0; }
 
+.swm-card .swm-contracts a { grid-template-columns: 12px 1fr auto; }
+.swm-card .swm-contracts .d { width: 9px; height: 9px; border-radius: 1px; transform: rotate(45deg); background: #ffb36b; box-shadow: 0 0 8px #ffb36b; }
+.swm-card .swm-contracts a.taken .d { background: #7fa9cf; box-shadow: none; }
+.swm-card .swm-contracts small { display: block; font-size: 12px; color: #7fa9cf; }
+.swm-card .swm-contracts em { color: #ffb36b; letter-spacing: 0.1em; }
+
 /* у системы с карточкой заголовок страницы дублируется — прячем */
 .journal-entry-page.swm-has-card .journal-page-header { display: none; }
 .journal-sheet.swm-system-journal .journal-entry-content > .journal-header { display: none; }

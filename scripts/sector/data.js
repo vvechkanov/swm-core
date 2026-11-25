@@ -111,3 +111,61 @@ export function zoneOf(d) {
   if (d <= LIMIT) return { key: "edge", label: "за краем сенсоров", color: 0xffb36b };
   return { key: "far", label: "вне досягаемости", color: 0xff6a6a };
 }
+
+/* -------------------------------------------- */
+/*  Заказы (доска заказов)                      */
+/* -------------------------------------------- */
+
+export const THREATS = ["", "Низкая", "Умеренная", "Высокая", "Крайняя", "Смертельная"];
+export const CONTRACT_STATUS = {
+  open: "открыт", taken: "в работе", done: "выполнен", failed: "провален", archived: "в архиве"
+};
+
+export function currencyName() {
+  // английское «Currency» — значение SWADE по умолчанию, вместо него пишем «кр.»
+  try {
+    const v = String(game.settings.get("swade", "currencyName") ?? "").trim();
+    return v && v.toLowerCase() !== "currency" ? v : "кр.";
+  } catch (e) { return "кр."; }
+}
+
+/**
+ * Заказы, которые видит пользователь: журналы с флагом world.contract.
+ * На карту попадают только открытые и взятые, привязанные к видимой системе.
+ */
+export function readContracts(user = game.user) {
+  const out = [];
+  for (const j of game.journal) {
+    const c = j.flags?.world?.contract;
+    if (!c || typeof c !== "object") continue;
+    if (!user.isGM && !j.testUserPermission(user, LIMITED())) continue;
+    const status = String(c.status ?? "open");
+    out.push({
+      journal: j,
+      name: j.name,
+      sys: c.sys ? String(c.sys) : null,
+      status,
+      due: c.due ? String(c.due) : "",
+      reward: Number.isFinite(Number(c.reward)) && c.reward !== "" && c.reward !== null ? Number(c.reward) : null,
+      rewardText: c.rewardText ? String(c.rewardText) : "",
+      threat: Math.max(0, Math.min(5, Number(c.threat) || 0)),
+      kind: c.kind ? String(c.kind) : "",
+      summary: c.summary ? String(c.summary) : "",
+      hiddenFromPlayers: user.isGM ? !visibleToPlayers(j) : false
+    });
+  }
+  return out;
+}
+
+export const isActiveContract = c => c.status === "open" || c.status === "taken";
+
+/** Краткая строка заказа: вид · угроза · награда · срок. */
+export function contractLine(c) {
+  const parts = [];
+  if (c.kind) parts.push(c.kind);
+  if (c.threat) parts.push(`угроза: ${THREATS[c.threat].toLowerCase()}`);
+  if (c.reward != null) parts.push(`${c.reward.toLocaleString("ru-RU")} ${currencyName()}`);
+  else if (c.rewardText) parts.push(c.rewardText);
+  if (c.due) parts.push(`до ${c.due}`);
+  return parts.join(" · ");
+}

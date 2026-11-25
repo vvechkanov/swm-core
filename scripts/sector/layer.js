@@ -10,7 +10,8 @@
  * подписи, таблички и наведение — в самом слое (группа interface, над токенами).
  */
 import {
-  GRID, RANGE, COLORS, readSystems, readRoutes, isSectorScene, dist, zoneOf
+  GRID, RANGE, COLORS, readSystems, readRoutes, isSectorScene, dist, zoneOf,
+  readContracts, isActiveContract, contractLine
 } from "./data.js";
 import { glowTexture, rayTexture, zoneTexture, darkTexture, scanlineTexture, sweepTexture, toNum, hexA } from "./textures.js";
 import { MODULE_ID } from "../const.js";
@@ -119,6 +120,13 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this.byId = new Map(this.systems.map(s => [s.id, s]));
     this.routes = readRoutes(canvas.scene, this.systems);
     this.home = this.systems.find(s => s.home) ?? null;
+    // заказы: только открытые и взятые, у видимой системы
+    this.contractsBySys = new Map();
+    for (const c of readContracts(this.viewAs ?? game.user)) {
+      if (!isActiveContract(c) || !c.sys || !this.byId.has(c.sys)) continue;
+      if (!this.contractsBySys.has(c.sys)) this.contractsBySys.set(c.sys, []);
+      this.contractsBySys.get(c.sys).push(c);
+    }
 
     // Нижняя часть — под токенами (primary), верхняя — над ними (этот слой).
     this.visual = new PIXI.Container();
@@ -134,6 +142,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this.hudLayer = this.addChild(new PIXI.Container());
     this.labelLayer = this.addChild(new PIXI.Container());
     this.pillLayer = this.addChild(new PIXI.Container());
+    this.contractLayer = this.addChild(new PIXI.Container());
     this.hoverLayer = this.addChild(new PIXI.Container());
     this.holoLayer = this.addChild(new PIXI.Container());
     this.holoLayer.eventMode = "none";
@@ -148,6 +157,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this._buildLabels();
     this._buildHud();
     this._buildHits();
+    this._buildContracts();
     this._buildHolo();
     this._rescale(canvas.stage.scale.x);
     this._animateFrame(0);
@@ -169,6 +179,8 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this.bgVisual = null;
     this.nebula = null;
     this.hover = null;
+    this.contractHover = null;
+    this.contractPill = null;
     this.enabled = false;
     return super._tearDown(options);
   }
@@ -306,6 +318,14 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
         lab.scale.set(u);
       }
       if (s.hit) s.hit.hitArea = new PIXI.Circle(0, 0, Math.max(s.hitR * zz, 12) * u);
+      if (s.contract) {
+        const k = zz * u, a = -0.9, dd = s.r + 13;
+        const x = s.px + Math.cos(a) * dd * k + 4 * u, y = s.py + Math.sin(a) * dd * k - 4 * u;
+        s.contract.view.position.set(x, y);
+        s.contract.view.scale.set(u);
+        s.contract.hit.position.set(x, y);
+        s.contract.hit.hitArea = new PIXI.Circle(0, 0, 11 * u);
+      }
     }
   }
 
@@ -608,6 +628,94 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     }
   }
 
+  /**
+   * Метки заказов у систем: ромб с числом заказов. Открытые — тёплые и пульсируют,
+   * взятые — приглушённые «в работе». Наведение — список заказов, клик — журнал заказа.
+   */
+  _buildContracts() {
+    for (const [sys, list] of this.contractsBySys) {
+      const s = this.byId.get(sys);
+      const open = list.some(c => c.status === "open");
+      const col = open ? 0xffb36b : 0x7fa9cf;
+      const view = new PIXI.Container();
+      const pulse = new PIXI.Graphics();
+      const g = new PIXI.Graphics();
+      g.lineStyle({ width: 1.4, color: col, alpha: open ? 1 : 0.7 });
+      g.beginFill(open ? 0x2a1606 : 0x07111f, open ? 0.85 : 0.75);
+      g.drawPolygon([0, -9, 9, 0, 0, 9, -9, 0]);
+      g.endFill();
+      view.addChild(pulse, g);
+      const t = text(String(list.length), { size: 10, weight: "600", fill: open ? "#ffd1a3" : "#9fc3e4", shadow: false });
+      t.anchor.set(0.5);
+      t.y = 0.5;
+      view.addChild(t);
+      if (!open) view.alpha = 0.8;
+      this.contractLayer.addChild(view);
+
+      const hit = new PIXI.Container();
+      hit.eventMode = "static";
+      hit.cursor = "pointer";
+      hit.hitArea = new PIXI.Circle(0, 0, 12);
+      hit.on("pointerover", () => this._setContractHover(s));
+      hit.on("pointerout", () => { if (this.contractHover === s) this._setContractHover(null); });
+      hit.on("pointerdown", ev => {
+        ev.stopPropagation();
+        if ((ev.button ?? 0) !== 0) return;
+        this._openContracts(list);
+      });
+      this.hitLayer.addChild(hit);
+      s.contract = { view, hit, pulse, open, list };
+    }
+  }
+
+  _setContractHover(s) {
+    if (this.contractHover === s) return;
+    this.contractHover = s;
+    if (this.contractPill && !this.contractPill.destroyed) this.contractPill.destroy({ children: true });
+    this.contractPill = null;
+    if (!s?.contract) return;
+    const list = s.contract.list.slice().sort((a, b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1));
+    const lines = [{ text: `ЗАКАЗЫ · ${s.name.toUpperCase()}`, size: 10.5, weight: "500", fill: "#7fa9cf", spacing: 1.5 }];
+    for (const c of list.slice(0, 4)) {
+      const tag = c.status === "taken" ? " · в работе" : "";
+      lines.push({ text: `${c.name}${tag}${c.hiddenFromPlayers ? " · скрыт от игроков" : ""}`, size: 12, weight: "600",
+        fill: c.status === "open" ? "#ffe2c2" : "#b4cbe2" });
+      const info = contractLine(c);
+      if (info) lines.push({ text: info, size: 11, fill: "#9fc3e4" });
+      if (c.summary && list.length === 1) {
+        const sum = c.summary.length > 90 ? c.summary.slice(0, 88) + "…" : c.summary;
+        lines.push({ text: sum, size: 11, fill: "#d6e9fb" });
+      }
+    }
+    if (list.length > 4) lines.push({ text: `ещё ${list.length - 4}…`, size: 11, fill: "#7fa9cf" });
+    const p = pill(lines, { border: "rgba(255,179,107,.55)", radius: 12, padX: 12, padY: 6 });
+    // выравнивание по левому краю внутри таблички
+    for (const ch of p.children) if (ch.anchor) { ch.anchor.set(0, 0); ch.x = -p.pillWidth / 2 + 12; }
+    const u = this.u ?? 1;
+    p.scale.set(u);
+    const v = s.contract.view.position;
+    p.position.set(v.x + (p.pillWidth / 2 + 16) * u, v.y - (p.pillHeight / 2 + 6) * u);
+    this.hoverLayer.addChild(p);
+    this.contractPill = p;
+  }
+
+  async _openContracts(list) {
+    if (list.length === 1) return list[0].journal.sheet.render(true);
+    const buttons = list.map((c, i) => ({
+      action: `c${i}`, label: `${c.name}${c.status === "taken" ? " (в работе)" : ""}`,
+      icon: c.status === "taken" ? "fa-solid fa-hourglass-half" : "fa-solid fa-file-contract",
+      callback: () => i
+    }));
+    const n = list.length;
+    const word = n % 10 === 1 && n % 100 !== 11 ? "заказ" : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? "заказа" : "заказов";
+    const i = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Заказы" }, classes: ["swm-dialog"],
+      content: `<p class="swm-kick">${n} ${word} здесь</p>`,
+      buttons, rejectClose: false
+    });
+    if (Number.isInteger(i)) list[i].journal.sheet.render(true);
+  }
+
   /* -------------------------------------------- */
   /*  Ввод                                        */
   /* -------------------------------------------- */
@@ -753,6 +861,18 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
         }
         s.station.ticks.rotation = T * 0.25;
       }
+    }
+
+    // пульс открытых заказов
+    for (const s of this.systems ?? []) {
+      const C = s.contract;
+      if (!C) continue;
+      const g = C.pulse.clear();
+      if (!C.open || !this.animate) continue;
+      const ph = (T * 0.6) % 1;
+      g.lineStyle({ width: 1.2, color: 0xffb36b, alpha: 0.6 * (1 - ph) });
+      const r = 9 + ph * 10;
+      g.drawPolygon([0, -r, r, 0, 0, r, -r, 0]);
     }
 
     // прицел и линия наведения
