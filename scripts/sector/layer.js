@@ -12,7 +12,7 @@
 import {
   GRID, RANGE, COLORS, readSystems, readRoutes, isSectorScene, dist, zoneOf
 } from "./data.js";
-import { glowTexture, rayTexture, zoneTexture, darkTexture, toNum, hexA } from "./textures.js";
+import { glowTexture, rayTexture, zoneTexture, darkTexture, scanlineTexture, sweepTexture, toNum, hexA } from "./textures.js";
 import { MODULE_ID } from "../const.js";
 
 /** Масштаб сцены → «зум» map.html (там ~30 px на св. год, здесь 100). */
@@ -134,6 +134,8 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this.labelLayer = this.addChild(new PIXI.Container());
     this.pillLayer = this.addChild(new PIXI.Container());
     this.hoverLayer = this.addChild(new PIXI.Container());
+    this.holoLayer = this.addChild(new PIXI.Container());
+    this.holoLayer.eventMode = "none";
     this.hitLayer = this.addChild(new PIXI.Container());
     this.hitLayer.eventMode = "passive";
 
@@ -144,6 +146,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this._buildLabels();
     this._buildHud();
     this._buildHits();
+    this._buildHolo();
     this._rescale(canvas.stage.scale.x);
     this._animateFrame(0);
 
@@ -226,6 +229,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
   /** Перестроить то, что зависит от масштаба: толщины линий, пунктир, засечки. */
   _rebuildScaled() {
     const u = this.u, zz = this.zz;
+    if (this.holo) this.holo.scan.tileScale.set(u * 0.75);
     if (this.home) {
       const R = RANGE * GRID.px, R5 = 5 * GRID.px;
       this.ring5.clear().lineStyle({ width: 1 * u, color: CYAN, alpha: 0.09 }).drawCircle(0, 0, R5);
@@ -440,7 +444,11 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     }
     // к станции тоже не подписываем — туда смотрит линия наведения
     if (this.home && !s.home) dirs.push(Math.atan2(this.home.py - s.py, this.home.px - s.px));
-    const pref = s.x >= 0 ? [0, -25, 25, 180, -155, 155] : [180, -155, 155, 0, -25, 25];
+    // у края сцены — подпись внутрь, иначе по стороне от станции, как в map.html
+    const d0 = canvas.dimensions;
+    const nearLeft = s.px - d0.sceneX < 600, nearRight = d0.sceneX + d0.sceneWidth - s.px < 600;
+    const rightFirst = nearLeft ? true : nearRight ? false : s.x >= 0;
+    const pref = rightFirst ? [0, -25, 25, 180, -155, 155] : [180, -155, 155, 0, -25, 25];
     const angDist = (a, b) => { let x = Math.abs(a - b) % (2 * Math.PI); return x > Math.PI ? 2 * Math.PI - x : x; };
     let best = pref[0], bestScore = -1;
     for (const deg of pref) {
@@ -526,6 +534,30 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     bl.scale.set(k);
     bl.position.set(bx + L5 / 2, by - 8 * k);
     hud.addChild(bar, bl);
+  }
+
+  /**
+   * Голограмма «над столом на мостике»: сканлинии (в экранных пикселях), медленная полоса
+   * развёртки и лёгкое мерцание всей проекции. Без анимации — только неподвижные сканлинии.
+   */
+  _buildHolo() {
+    const d = canvas.dimensions;
+    const r = new PIXI.Rectangle(d.sceneX, d.sceneY, d.sceneWidth, d.sceneHeight);
+    this.holoRect = r;
+    const scan = new PIXI.TilingSprite(scanlineTexture(), r.width, r.height);
+    scan.position.set(r.x, r.y);
+    scan.blendMode = PIXI.BLEND_MODES.ADD;
+    scan.alpha = 0.05;
+    const sweep = new PIXI.Sprite(sweepTexture());
+    sweep.blendMode = PIXI.BLEND_MODES.ADD;
+    sweep.width = r.width;
+    sweep.height = 420;
+    sweep.x = r.x;
+    sweep.alpha = 0.07;
+    const mask = new PIXI.Graphics().beginFill(0xffffff).drawRect(r.x, r.y, r.width, r.height).endFill();
+    this.holoLayer.addChild(scan, sweep, mask);
+    sweep.mask = mask;
+    this.holo = { scan, sweep, mask, glitch: 0, nextGlitch: 4 + Math.random() * 8 };
   }
 
   _buildHits() {
@@ -636,6 +668,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
 
   _animateFrame(dt) {
     const T = this.T, u = this.u ?? 1, zz = this.zz ?? 1;
+    this._animateHolo(dt);
     if (this.ring10 && this.animate) {
       // пунктир бежит по кольцу ~8 экранных px в секунду
       this.ringAngle += dt * 8 * u / (RANGE * GRID.px);
@@ -720,6 +753,29 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
       const t = 0.7;
       L.pill.position.set(L.o.x + (L.s.px - L.o.x) * t + nx * off2 * u, L.o.y + (L.s.py - L.o.y) * t + ny * off2 * u);
     }
+  }
+
+  _animateHolo(dt) {
+    const H = this.holo;
+    if (!H) return;
+    if (!this.animate) {
+      H.sweep.visible = false;
+      this.visual.alpha = 0.94;
+      this.labelLayer.alpha = this.pillLayer.alpha = 0.94;
+      return;
+    }
+    const T = this.T, r = this.holoRect;
+    H.sweep.visible = true;
+    // полоса проходит сцену сверху вниз за ~9 с
+    const period = 9;
+    H.sweep.y = r.y - H.sweep.height + ((T % period) / period) * (r.height + H.sweep.height);
+    H.scan.tilePosition.y = (T * 6) % 64;
+    // мерцание: ровный фон с редкими короткими сбоями
+    let a = 0.93 + 0.025 * Math.sin(T * 7.3) + 0.015 * Math.sin(T * 23.1);
+    if (T > H.nextGlitch) { H.glitch = 0.18; H.nextGlitch = T + 5 + Math.random() * 10; }
+    if (H.glitch > 0) { a -= 0.12 * Math.abs(Math.sin(H.glitch * 60)); H.glitch -= dt; }
+    this.visual.alpha = a;
+    this.labelLayer.alpha = this.pillLayer.alpha = Math.min(1, a + 0.03);
   }
 
   _padFor(sys, origin) {

@@ -3,8 +3,11 @@
  * Здесь же — правила видимости и пересчёт координат в пиксели сцены.
  */
 
-/** Сцена 1 клетка = 1 св. год = 100 px; начало координат (станция) — в клетке (14, 16). */
-export const GRID = { px: 100, ox: 14, oy: 16 };
+/**
+ * Сцена: 1 клетка = 1 св. год = 100 px. Ось y — вверх, как в map.html дизайнера
+ * (экранная Y = cy − y·sc): система с y = +8 выше станции. Станция (0, 0) — в точке (14, 12) клеток.
+ */
+export const GRID = { px: 100, ox: 14, oy: 12 };
 
 /** Рекомендованный предел (дальность сенсоров) и абсолютный предел прыжка, св. лет. */
 export const RANGE = 10;
@@ -26,7 +29,7 @@ export const STATUS_NAMES = {
 
 export const isSectorScene = scene => !!scene?.getFlag?.("world", "sector");
 
-export const toScene = (x, y) => ({ x: (x + GRID.ox) * GRID.px, y: (y + GRID.oy) * GRID.px });
+export const toScene = (x, y) => ({ x: (x + GRID.ox) * GRID.px, y: (GRID.oy - y) * GRID.px });
 
 export const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 

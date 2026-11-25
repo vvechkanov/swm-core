@@ -72,3 +72,24 @@ export function darkTexture() {
     g.fillStyle = gr; g.fillRect(0, 0, 1024, 1024);
   });
 }
+
+/** Сканлинии голограммы: тонкая светлая строка через каждые 3 пикселя. */
+export function scanlineTexture() {
+  return make("scan", 4, 4, (g) => {
+    g.clearRect(0, 0, 4, 4);
+    g.fillStyle = "rgba(160,225,255,1)";
+    g.fillRect(0, 0, 4, 1);
+  });
+}
+
+/** Полоса развёртки: мягкий горизонтальный луч, ярче в середине. */
+export function sweepTexture() {
+  return make("sweep", 4, 256, (g, w, h) => {
+    const lg = g.createLinearGradient(0, 0, 0, h);
+    lg.addColorStop(0, "rgba(111,214,255,0)");
+    lg.addColorStop(0.85, "rgba(111,214,255,.55)");
+    lg.addColorStop(0.97, "rgba(190,240,255,1)");
+    lg.addColorStop(1, "rgba(111,214,255,0)");
+    g.fillStyle = lg; g.fillRect(0, 0, w, h);
+  });
+}
