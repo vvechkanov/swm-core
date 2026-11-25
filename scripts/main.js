@@ -53,7 +53,18 @@ Hooks.once("init", () => {
     /** Окно маршрутов (порт макроса «Маршруты ближнего пояса»). */
     openRoutes: gm.openRoutesDialog,
     /** Убрать временную карту из тайлов и рисунков. По умолчанию только проверка: migrate({dryRun:false}). */
-    migrate: gm.migrate
+    migrate: gm.migrate,
+    /**
+     * Мастеру: показать карту у себя так, как её видит игрок (по имени или id). Без аргумента — вернуть свой вид.
+     * Меняет только картинку у мастера, документы не трогает.
+     */
+    previewAs: (user) => {
+      const layer = canvas.swmSector;
+      if (!layer || !game.user.isGM) return;
+      layer.viewAs = user ? (game.users.get(user) ?? game.users.getName(user) ?? null) : null;
+      if (user && !layer.viewAs) ui.notifications.warn(`Нет пользователя «${user}».`);
+      return layer.redraw();
+    }
   };
 });
 

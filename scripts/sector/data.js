@@ -38,9 +38,11 @@ export function visibleToPlayers(journal) {
   return game.users.some(u => !u.isGM && journal.testUserPermission(u, LIMITED()));
 }
 
-/** Все системы из журналов, с пометками для текущего пользователя. */
-export function readSystems() {
-  const user = game.user;
+/**
+ * Все системы из журналов, которые видит пользователь (по умолчанию — текущий).
+ * Другой пользователь — для проверки «глазами игрока» (см. api.previewAs).
+ */
+export function readSystems(user = game.user) {
   const out = [];
   for (const j of game.journal) {
     const f = j.flags?.world;

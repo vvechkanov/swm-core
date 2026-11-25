@@ -114,7 +114,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this._scale = null;
     try { this.animate = game.settings.get(MODULE_ID, "animate"); } catch (e) { this.animate = true; }
 
-    this.systems = readSystems();
+    this.systems = readSystems(this.viewAs ?? game.user);
     this.byId = new Map(this.systems.map(s => [s.id, s]));
     this.routes = readRoutes(canvas.scene, this.systems);
     this.home = this.systems.find(s => s.home) ?? null;
@@ -716,7 +716,9 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
       const pw = L.pill.pillWidth, ph = L.pill.pillHeight;
       const off2 = 16 + Math.abs(nx) * pw / 2 + Math.abs(ny) * ph / 2;
       L.pill.scale.set(u);
-      L.pill.position.set((L.o.x + L.s.px) / 2 + nx * off2 * u, (L.o.y + L.s.py) / 2 + ny * off2 * u);
+      // ближе к цели: у станции тесно от табличек маршрутов
+      const t = 0.7;
+      L.pill.position.set(L.o.x + (L.s.px - L.o.x) * t + nx * off2 * u, L.o.y + (L.s.py - L.o.y) * t + ny * off2 * u);
     }
   }
 
