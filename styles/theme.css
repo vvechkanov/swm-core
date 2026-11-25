@@ -90,8 +90,8 @@ body.swm-theme .themed.theme-dark {
   --toggle-active-border-color: var(--swm-cyan);
 }
 
-body.swm-theme.theme-dark .application:not(.theme-light),
-body.swm-theme .application.theme-dark {
+body.swm-theme.theme-dark .application:not(.theme-light):not(.swade-application),
+body.swm-theme .application.theme-dark:not(.swade-application) {
   --background: var(--swm-panel-bottom);
   --color-header-background: linear-gradient(180deg, rgba(16, 38, 68, 0.96), rgba(8, 18, 36, 0.96));
   --color-border: var(--swm-line-2);
@@ -121,29 +121,29 @@ body.swm-theme * {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Окна                                                               */
+/*  Окна (листы и окна системы SWADE — .swade-application — не трогаем)  */
 /* ------------------------------------------------------------------ */
-body.swm-theme .application {
+body.swm-theme .application:not(.swade-application) {
   border-radius: 16px;
 }
-body.swm-theme.theme-dark .application:not(.theme-light),
-body.swm-theme .application.theme-dark {
+body.swm-theme.theme-dark .application:not(.theme-light):not(.swade-application),
+body.swm-theme .application.theme-dark:not(.swade-application) {
   border: 1px solid rgba(var(--swm-cyan-rgb), 0.22);
   background: linear-gradient(180deg, var(--swm-panel-top), var(--swm-panel-bottom));
   box-shadow: 0 30px 80px -30px #000, inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 }
-body.swm-theme .application > .window-header {
+body.swm-theme .application:not(.swade-application) > .window-header {
   border-bottom: 1px solid var(--swm-line);
 }
-body.swm-theme .application > .window-header .window-title {
+body.swm-theme .application:not(.swade-application) > .window-header .window-title {
   font-family: var(--swm-head);
   font-weight: 500;
   font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-body.swm-theme.theme-dark .application:not(.theme-light) > .window-header,
-body.swm-theme .application.theme-dark > .window-header {
+body.swm-theme.theme-dark .application:not(.theme-light):not(.swade-application) > .window-header,
+body.swm-theme .application.theme-dark:not(.swade-application) > .window-header {
   background: linear-gradient(180deg, rgba(16, 38, 68, 0.96), rgba(8, 18, 36, 0.96));
   color: var(--swm-hi);
 }
@@ -152,20 +152,20 @@ body.swm-theme .application .window-header .header-control:hover {
 }
 
 /* кнопки диалогов — «таблетки» */
-body.swm-theme .application .form-footer button,
-body.swm-theme .application footer.form-footer button,
-body.swm-theme .application .dialog-buttons button {
+body.swm-theme .application:not(.swade-application) .form-footer button,
+body.swm-theme .application:not(.swade-application) footer.form-footer button,
+body.swm-theme .application:not(.swade-application) .dialog-buttons button {
   border-radius: 999px;
   letter-spacing: 0.06em;
 }
-body.swm-theme .application .form-footer button[data-action][autofocus],
-body.swm-theme .application .form-footer button.default {
+body.swm-theme .application:not(.swade-application) .form-footer button[data-action][autofocus],
+body.swm-theme .application:not(.swade-application) .form-footer button.default {
   border-color: var(--swm-cyan);
 }
 
 /* вкладки внутри окон */
-body.swm-theme .application nav.tabs > [data-tab].active,
-body.swm-theme .application nav.sheet-tabs > [data-tab].active {
+body.swm-theme .application:not(.swade-application) nav.tabs > [data-tab].active,
+body.swm-theme .application:not(.swade-application) nav.sheet-tabs > [data-tab].active {
   text-shadow: 0 0 10px rgba(var(--swm-cyan-rgb), 0.6);
 }
 
