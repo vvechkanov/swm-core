@@ -35,6 +35,16 @@ Hooks.once("init", () => {
     onChange: v => canvas.swmSector?.setAnimate(v)
   });
 
+  game.settings.register(MODULE_ID, "nebula", {
+    name: "SWM.Settings.Nebula.Name",
+    hint: "SWM.Settings.Nebula.Hint",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => canvas.swmSector?.redraw()
+  });
+
   CONFIG.Canvas.layers.swmSector = { layerClass: SectorLayer, group: "interface" };
 
   const module = game.modules.get(MODULE_ID);

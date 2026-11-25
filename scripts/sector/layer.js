@@ -14,6 +14,7 @@ import {
 } from "./data.js";
 import { glowTexture, rayTexture, zoneTexture, darkTexture, scanlineTexture, sweepTexture, toNum, hexA } from "./textures.js";
 import { MODULE_ID } from "../const.js";
+import { createNebula, nebulaSupported } from "./nebula.js";
 
 /** Масштаб сцены → «зум» map.html (там ~30 px на св. год, здесь 100). */
 const MAPZ = 100 / 30;
@@ -139,6 +140,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     this.hitLayer = this.addChild(new PIXI.Container());
     this.hitLayer.eventMode = "passive";
 
+    this._buildNebula();
     this._buildZone();
     this._buildRings();
     this._buildRoutes();
@@ -160,6 +162,12 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
       this.visual.destroy({ children: true });
     }
     this.visual = null;
+    if (this.bgVisual && !this.bgVisual.destroyed) {
+      this.bgVisual.parent?.removeChild(this.bgVisual);
+      this.bgVisual.destroy({ children: true });
+    }
+    this.bgVisual = null;
+    this.nebula = null;
     this.hover = null;
     this.enabled = false;
     return super._tearDown(options);
@@ -179,6 +187,31 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
     } else {
       this.addChildAt(container, 0);
     }
+  }
+
+  /** Живая туманность из map.html поверх фона сцены (настройка клиента «Живая туманность»). */
+  _buildNebula() {
+    let on = true;
+    try { on = game.settings.get(MODULE_ID, "nebula"); } catch (e) { /* настройка не зарегистрирована */ }
+    if (!on || !nebulaSupported()) return;
+    const d = canvas.dimensions;
+    const rect = new PIXI.Rectangle(d.sceneX, d.sceneY, d.sceneWidth, d.sceneHeight);
+    const center = this.home ? { x: this.home.px, y: this.home.py } : { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    this.nebula = createNebula(rect, center);
+    const bg = new PIXI.Container();
+    bg.name = "swmSectorNebula";
+    bg.addChild(this.nebula);
+    const primary = canvas.primary;
+    const layers = primary?.constructor?.SORT_LAYERS;
+    if (primary && layers) {
+      // сразу над картинкой фона сцены, под тайлами
+      bg.elevation = 0; bg.sortLayer = (layers.SCENE ?? 0) + 1; bg.sort = 0; bg.zIndex = 0;
+      primary.addChild(bg);
+      primary.sortDirty = true;
+    } else {
+      this.addChildAt(bg, 0);
+    }
+    this.bgVisual = bg;
   }
 
   /** Перечитать данные и перерисовать (вызывается хуками и API). */
@@ -489,7 +522,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
       lab.x = 60;
       core.addChild(arrow, line, lab);
       core.scale.set(k);
-      core.position.set(X + m, this.home.py);
+      core.position.set(X + m, Y + H / 2); // как в map.html — посередине высоты
       hud.addChild(core);
     }
 
@@ -652,6 +685,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
 
   _rescale(s) {
     this._scale = s;
+    if (this.nebula) this.nebula.shader.uniforms.uS = s;
     this.u = 1 / s;
     this.zz = Math.sqrt(MAPZ * s);
     this._rebuildScaled();
@@ -669,6 +703,7 @@ export class SectorLayer extends foundry.canvas.layers.CanvasLayer {
   _animateFrame(dt) {
     const T = this.T, u = this.u ?? 1, zz = this.zz ?? 1;
     this._animateHolo(dt);
+    if (this.nebula) this.nebula.shader.uniforms.uT = T;
     if (this.ring10 && this.animate) {
       // пунктир бежит по кольцу ~8 экранных px в секунду
       this.ringAngle += dt * 8 * u / (RANGE * GRID.px);

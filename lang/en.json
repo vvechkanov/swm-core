@@ -2,5 +2,7 @@
   "SWM.Settings.Theme.Name": "“Lotsia” theme",
   "SWM.Settings.Theme.Hint": "Interface and journals styled like the Near Belt wiki. This browser only.",
   "SWM.Settings.Animate.Name": "Animate sector map",
-  "SWM.Settings.Animate.Hint": "Route lights, pulsing stars and rings. Turn off on slow machines."
+  "SWM.Settings.Animate.Hint": "Route lights, pulsing stars and rings. Turn off on slow machines.",
+  "SWM.Settings.Nebula.Name": "Live nebula on the sector map",
+  "SWM.Settings.Nebula.Hint": "Animated nebula and twinkling stars behind the sector map. Turn off on slow machines to use the static picture."
 }
