@@ -6,6 +6,7 @@ import { MODULE_ID } from "./const.js";
 import { SectorLayer } from "./sector/layer.js";
 import { isSectorScene } from "./sector/data.js";
 import * as gm from "./sector/gm.js";
+import { registerJournalHooks } from "./theme/journal.js";
 
 export { MODULE_ID };
 
@@ -60,6 +61,8 @@ Hooks.once("ready", () => {
   if (!active()) return;
   applyTheme(game.settings.get(MODULE_ID, "theme"));
 });
+
+registerJournalHooks();
 
 function applyTheme(on) {
   document.body.classList.toggle("swm-theme", !!on);

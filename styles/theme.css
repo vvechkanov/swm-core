@@ -1,1 +1,544 @@
-/* Тема «Лоция» — включается классом body.swm-theme (настройка клиента). */
+/*
+ * Тема «Лоция» — стиль вики «Ближний пояс».
+ * Включается классом body.swm-theme (настройка клиента «Тема „Лоция“»).
+ * Стили Foundry лежат в CSS-слоях (@layer), эти — без слоя, поэтому побеждают их без !important.
+ * Листы персонажей SWADE не оформляются: меняются только общие цвета и шрифты.
+ */
+
+/* ------------------------------------------------------------------ */
+/*  Токены                                                             */
+/* ------------------------------------------------------------------ */
+body.swm-theme {
+  --swm-bg: #04070f;
+  --swm-cyan: #6fd6ff;
+  --swm-cyan-2: #8fdcff;
+  --swm-cyan-rgb: 111, 214, 255;
+  --swm-line: rgba(111, 214, 255, 0.16);
+  --swm-line-2: rgba(111, 214, 255, 0.3);
+  --swm-sub: #7fa9cf;
+  --swm-text: #d6e9fb;
+  --swm-text-2: #b7cfe6;
+  --swm-hi: #f2f9ff;
+  --swm-warm: #ffb36b;
+  --swm-trap: #c56bff;
+  --swm-cell: #071224;
+  --swm-panel-top: rgba(12, 28, 52, 0.96);
+  --swm-panel-bottom: rgba(5, 11, 22, 0.97);
+  --swm-head: "Unbounded", "Onest", "Segoe UI", sans-serif;
+  --swm-body: "Onest", "Segoe UI", system-ui, sans-serif;
+
+  /* шрифты Foundry */
+  --font-sans: var(--swm-body);
+  --font-primary: var(--swm-body);
+  --font-body: var(--swm-body);
+  --font-slab: var(--swm-body);
+  --font-h1: var(--swm-head);
+  --font-h2: var(--swm-head);
+  --font-h3: var(--swm-head);
+
+  /* палитра Foundry: «холодные» — фоны, «светлые» — текст, «тёплые» — акцент (у нас голубой) */
+  --color-cool-5: #050b16;
+  --color-cool-5-90: rgba(5, 11, 22, 0.92);
+  --color-cool-5-75: rgba(5, 11, 22, 0.8);
+  --color-cool-5-50: rgba(5, 11, 22, 0.55);
+  --color-cool-5-25: rgba(5, 11, 22, 0.28);
+  --color-cool-4: #0c1c34;
+  --color-cool-3: #18365c;
+  --color-light-1: #f2f9ff;
+  --color-light-2: #d6e9fb;
+  --color-light-3: #b7cfe6;
+  --color-light-4: #9fc3e4;
+  --color-light-5: #7fa9cf;
+  --color-light-6: #4a6a8c;
+  --color-warm-1: #6fd6ff;
+  --color-warm-2: #1f6f9e;
+  --color-warm-3: #0d3554;
+}
+
+/* тёмная схема: интерфейс и окна */
+body.swm-theme.theme-dark,
+body.swm-theme .themed.theme-dark {
+  --hr-gradient: linear-gradient(90deg, transparent 0%, var(--swm-line-2) 50%, transparent 100%);
+  --sidebar-background: linear-gradient(180deg, rgba(10, 24, 46, 0.94), rgba(4, 8, 17, 0.96));
+  --sidebar-separator: 1px solid var(--swm-line);
+  --sidebar-entry-hover-bg: rgba(var(--swm-cyan-rgb), 0.08);
+  --table-header-bg-color: rgba(var(--swm-cyan-rgb), 0.08);
+  --table-header-border-color: var(--swm-line);
+  --table-row-color-even: rgba(var(--swm-cyan-rgb), 0.04);
+  --table-row-color-highlight: rgba(var(--swm-cyan-rgb), 0.12);
+  --content-link-background: rgba(var(--swm-cyan-rgb), 0.08);
+  --content-link-border-color: var(--swm-line-2);
+  --content-link-icon-color: var(--swm-cyan);
+  --content-link-text-color: #bfe7ff;
+  --color-text-selection-bg: rgba(var(--swm-cyan-rgb), 0.35);
+
+  --control-bg-color: rgba(6, 14, 28, 0.78);
+  --control-border-color: rgba(var(--swm-cyan-rgb), 0.22);
+  --control-icon-color: #cfeeff;
+  --control-hover-bg-color: rgba(10, 26, 48, 0.92);
+  --control-hover-border-color: var(--swm-cyan);
+  --control-hover-icon-color: #ffffff;
+  --control-active-bg-color: rgba(10, 30, 56, 0.95);
+  --control-active-border-color: var(--swm-cyan);
+  --control-active-icon-color: #ffffff;
+  --control-button-border-color: var(--swm-cyan);
+  --control-button-hover-bg-color: rgba(var(--swm-cyan-rgb), 0.25);
+  --control-button-hover-border-color: #ffffff;
+  --toggle-bg-color: rgba(12, 40, 70, 0.8);
+  --toggle-border-color: rgba(var(--swm-cyan-rgb), 0.5);
+  --toggle-active-bg-color: rgba(var(--swm-cyan-rgb), 0.35);
+  --toggle-active-border-color: var(--swm-cyan);
+}
+
+body.swm-theme.theme-dark .application:not(.theme-light),
+body.swm-theme .application.theme-dark {
+  --background: var(--swm-panel-bottom);
+  --color-header-background: linear-gradient(180deg, rgba(16, 38, 68, 0.96), rgba(8, 18, 36, 0.96));
+  --color-border: var(--swm-line-2);
+  --color-tabs-border: var(--swm-line-2);
+  --color-fieldset-border: var(--swm-line);
+  --color-form-label: var(--swm-sub);
+  --color-form-hint: #6f93b6;
+  --color-data-border: var(--swm-line);
+  --color-data-background: var(--swm-cell);
+  --input-background-color: rgba(3, 9, 20, 0.7);
+  --input-border-color: rgba(var(--swm-cyan-rgb), 0.18);
+  --input-focus-outline-color: var(--swm-cyan);
+  --button-background-color: rgba(6, 14, 28, 0.7);
+  --button-border-color: rgba(var(--swm-cyan-rgb), 0.3);
+  --button-text-color: #cfeeff;
+  --button-hover-background-color: rgba(var(--swm-cyan-rgb), 0.14);
+  --button-hover-border-color: var(--swm-cyan);
+  --button-hover-text-color: #ffffff;
+  --button-focus-outline-color: var(--swm-cyan);
+  --checkbox-checked-color: var(--swm-cyan);
+}
+
+/* полосы прокрутки — голубые вместо красных */
+body.swm-theme,
+body.swm-theme * {
+  scrollbar-color: rgba(var(--swm-cyan-rgb), 0.35) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Окна                                                               */
+/* ------------------------------------------------------------------ */
+body.swm-theme .application {
+  border-radius: 16px;
+}
+body.swm-theme.theme-dark .application:not(.theme-light),
+body.swm-theme .application.theme-dark {
+  border: 1px solid rgba(var(--swm-cyan-rgb), 0.22);
+  background: linear-gradient(180deg, var(--swm-panel-top), var(--swm-panel-bottom));
+  box-shadow: 0 30px 80px -30px #000, inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+body.swm-theme .application > .window-header {
+  border-bottom: 1px solid var(--swm-line);
+}
+body.swm-theme .application > .window-header .window-title {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+body.swm-theme.theme-dark .application:not(.theme-light) > .window-header,
+body.swm-theme .application.theme-dark > .window-header {
+  background: linear-gradient(180deg, rgba(16, 38, 68, 0.96), rgba(8, 18, 36, 0.96));
+  color: var(--swm-hi);
+}
+body.swm-theme .application .window-header .header-control:hover {
+  color: var(--swm-cyan);
+}
+
+/* кнопки диалогов — «таблетки» */
+body.swm-theme .application .form-footer button,
+body.swm-theme .application footer.form-footer button,
+body.swm-theme .application .dialog-buttons button {
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+body.swm-theme .application .form-footer button[data-action][autofocus],
+body.swm-theme .application .form-footer button.default {
+  border-color: var(--swm-cyan);
+}
+
+/* вкладки внутри окон */
+body.swm-theme .application nav.tabs > [data-tab].active,
+body.swm-theme .application nav.sheet-tabs > [data-tab].active {
+  text-shadow: 0 0 10px rgba(var(--swm-cyan-rgb), 0.6);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Боковая панель                                                     */
+/* ------------------------------------------------------------------ */
+body.swm-theme #sidebar .sidebar-tab,
+body.swm-theme #sidebar #sidebar-content {
+  font-family: var(--swm-body);
+}
+body.swm-theme.theme-dark #sidebar-content,
+body.swm-theme #sidebar-content.theme-dark {
+  border-radius: 16px 0 0 16px;
+  border: 1px solid var(--swm-line);
+  border-right: none;
+  backdrop-filter: blur(6px);
+}
+body.swm-theme #sidebar-tabs button.active,
+body.swm-theme #sidebar-tabs [data-tab].active {
+  color: var(--swm-cyan);
+  border-color: var(--swm-cyan);
+  box-shadow: 0 0 12px -2px rgba(var(--swm-cyan-rgb), 0.55);
+}
+body.swm-theme .directory .directory-header .header-search input,
+body.swm-theme .directory .header-search input {
+  border-radius: 999px;
+}
+body.swm-theme .directory .folder > .folder-header {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+body.swm-theme.theme-dark .directory .folder > .folder-header {
+  border-color: var(--swm-line);
+}
+body.swm-theme .directory .directory-item .entry-name,
+body.swm-theme .directory .directory-item .document-name {
+  font-family: var(--swm-body);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Чат                                                                */
+/* ------------------------------------------------------------------ */
+body.swm-theme .chat-message {
+  border-radius: 14px;
+  font-family: var(--swm-body);
+}
+body.swm-theme.theme-dark .chat-message,
+body.swm-theme .theme-dark .chat-message {
+  background: linear-gradient(180deg, rgba(12, 28, 52, 0.86), rgba(5, 11, 22, 0.9));
+  border: 1px solid var(--swm-line);
+  color: var(--swm-text);
+  box-shadow: none;
+}
+body.swm-theme.theme-dark .chat-message.whisper,
+body.swm-theme .theme-dark .chat-message.whisper {
+  border-color: rgba(197, 107, 255, 0.45);
+}
+body.swm-theme.theme-dark .chat-message.blind,
+body.swm-theme .theme-dark .chat-message.blind {
+  border-color: rgba(255, 179, 107, 0.45);
+}
+body.swm-theme .chat-message .message-header .message-sender,
+body.swm-theme .chat-message .message-header h4 {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+body.swm-theme.theme-dark .chat-message .message-header .message-sender,
+body.swm-theme .theme-dark .chat-message .message-header .message-sender {
+  color: var(--swm-hi);
+}
+body.swm-theme.theme-dark .chat-message .message-metadata,
+body.swm-theme.theme-dark .chat-message .whisper-to,
+body.swm-theme.theme-dark .chat-message .flavor-text,
+body.swm-theme .theme-dark .chat-message .message-metadata,
+body.swm-theme .theme-dark .chat-message .whisper-to,
+body.swm-theme .theme-dark .chat-message .flavor-text {
+  color: var(--swm-sub);
+}
+/* броски */
+body.swm-theme .chat-message .dice-roll .dice-total {
+  border-radius: 10px;
+  font-family: var(--swm-head);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+body.swm-theme .chat-message .dice-roll .dice-formula {
+  border-radius: 999px;
+}
+body.swm-theme.theme-dark .chat-message .dice-roll .dice-formula,
+body.swm-theme.theme-dark .chat-message .dice-roll .dice-total,
+body.swm-theme .theme-dark .chat-message .dice-roll .dice-formula,
+body.swm-theme .theme-dark .chat-message .dice-roll .dice-total {
+  background: rgba(var(--swm-cyan-rgb), 0.06);
+  border: 1px solid var(--swm-line-2);
+  box-shadow: none;
+  color: var(--swm-hi);
+}
+body.swm-theme .chat-message .dice-roll .dice-total.critical { color: #8fffc0; }
+body.swm-theme .chat-message .dice-roll .dice-total.fumble { color: #ff8f8f; }
+body.swm-theme .theme-dark .chat-message .dice-roll .dice-tooltip .part,
+body.swm-theme.theme-dark .chat-message .dice-roll .dice-tooltip .part {
+  border-color: var(--swm-line);
+}
+/* поле ввода чата */
+body.swm-theme #chat-message {
+  border-radius: 14px;
+}
+body.swm-theme.theme-dark #chat-message {
+  --background-color: rgba(3, 9, 20, 0.85);
+  --border-color: var(--swm-line-2);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Панели интерфейса                                                  */
+/* ------------------------------------------------------------------ */
+body.swm-theme .ui-control {
+  border-radius: 12px;
+}
+body.swm-theme #players {
+  border-radius: 12px;
+}
+body.swm-theme #context-menu {
+  border-radius: 12px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Журналы                                                            */
+/* ------------------------------------------------------------------ */
+/* цвета текста журнала по схеме */
+body.swm-theme.theme-dark .journal-entry-page,
+body.swm-theme .theme-dark .journal-entry-page,
+body.swm-theme .journal-entry-page.theme-dark {
+  --swm-j-head: var(--swm-hi);
+  --swm-j-sub: var(--swm-sub);
+  --swm-j-text: #b7cfe6;
+  --swm-j-strong: #e6f4ff;
+  --swm-j-cell: var(--swm-cell);
+  --swm-j-line: var(--swm-line);
+  --swm-j-link: #8fdcff;
+}
+body.swm-theme.theme-light .journal-entry-page,
+body.swm-theme .theme-light .journal-entry-page,
+body.swm-theme .journal-entry-page.theme-light {
+  --swm-j-head: #0b2a45;
+  --swm-j-sub: #3f6a92;
+  --swm-j-text: #23384f;
+  --swm-j-strong: #0b2a45;
+  --swm-j-cell: rgba(30, 110, 170, 0.06);
+  --swm-j-line: rgba(30, 110, 170, 0.22);
+  --swm-j-link: #0d6aa0;
+}
+
+body.swm-theme .journal-entry-page {
+  font-family: var(--swm-body);
+}
+body.swm-theme .journal-sheet .journal-header input.title {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 12px;
+}
+body.swm-theme.theme-dark .journal-sheet .journal-header input.title {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--swm-hi);
+}
+body.swm-theme.theme-dark .journal-sheet .journal-header input.title:hover,
+body.swm-theme.theme-dark .journal-sheet .journal-header input.title:focus {
+  border-color: var(--swm-line-2);
+}
+body.swm-theme .journal-sheet .journal-sidebar .toc .page-heading {
+  border-radius: 10px;
+}
+body.swm-theme .journal-entry-page .journal-page-header h1,
+body.swm-theme .journal-entry-page .journal-page-content h1 {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--swm-j-head);
+  border-bottom: 1px solid var(--swm-j-line);
+}
+body.swm-theme .journal-entry-page .journal-page-content h2 {
+  font-family: var(--swm-head);
+  font-weight: 500;
+  font-size: 1.35em;
+  letter-spacing: 0.02em;
+  color: var(--swm-j-head);
+  border-bottom: 1px solid var(--swm-j-line);
+}
+body.swm-theme .journal-entry-page .journal-page-content h3,
+body.swm-theme .journal-entry-page .journal-page-content h4 {
+  font-family: var(--swm-body);
+  font-weight: 500;
+  font-size: 0.82em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--swm-j-sub);
+  border: none;
+  margin-top: 1.4em;
+}
+body.swm-theme .journal-entry-page .journal-page-content p,
+body.swm-theme .journal-entry-page .journal-page-content li {
+  color: var(--swm-j-text);
+  line-height: 1.6;
+}
+body.swm-theme .journal-entry-page .journal-page-content strong { color: var(--swm-j-strong); }
+body.swm-theme .journal-entry-page .journal-page-content em { color: var(--swm-j-sub); }
+body.swm-theme .journal-entry-page .journal-page-content a:not(.content-link) { color: var(--swm-j-link); }
+body.swm-theme .journal-entry-page .journal-page-content blockquote {
+  border-left: 2px solid var(--swm-cyan);
+  background: var(--swm-j-cell);
+  border-radius: 0 12px 12px 0;
+  color: var(--swm-j-text);
+}
+body.swm-theme .journal-entry-page .journal-page-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--swm-j-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: transparent;
+}
+body.swm-theme .journal-entry-page .journal-page-content table th {
+  font-weight: 500;
+  font-size: 0.78em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--swm-j-sub);
+  background: var(--swm-j-cell);
+  border: none;
+  border-bottom: 1px solid var(--swm-j-line);
+  text-align: left;
+}
+body.swm-theme .journal-entry-page .journal-page-content table td {
+  color: var(--swm-j-text);
+  border: none;
+  border-top: 1px solid var(--swm-j-line);
+}
+body.swm-theme .journal-entry-page .journal-page-content table tr:first-child td { border-top: none; }
+body.swm-theme .content-link,
+body.swm-theme .inline-roll {
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Карточка системы (как aside в map.html)                           */
+/* ------------------------------------------------------------------ */
+/* Карточка всегда тёмная — читается и в светлой схеме. Видна и без темы. */
+.swm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(111, 214, 255, 0.16);
+  background: linear-gradient(180deg, rgba(12, 28, 52, 0.95), rgba(5, 11, 22, 0.96));
+  color: #d6e9fb;
+  font-family: "Onest", "Segoe UI", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.swm-card .swm-art {
+  height: 150px;
+  border-radius: 14px;
+  border: 1px solid rgba(111, 214, 255, 0.16);
+  background-size: cover;
+  background-position: center;
+}
+.swm-card .swm-kick {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7fa9cf;
+}
+.swm-card h2.swm-title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font: 500 26px/1.1 "Unbounded", "Onest", sans-serif;
+  letter-spacing: 0.04em;
+  color: #f2f9ff;
+  text-transform: uppercase;
+}
+.swm-card .swm-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.swm-card .swm-tag {
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(111, 214, 255, 0.3);
+  color: #bfe7ff;
+}
+.swm-card .swm-tag.warn { border-color: rgba(197, 107, 255, 0.5); color: #dcb5ff; }
+.swm-card .swm-tag.far { border-color: rgba(255, 179, 107, 0.45); color: #ffd1a3; }
+.swm-card .swm-tag.gm { border-style: dashed; border-color: rgba(255, 179, 107, 0.6); color: #ffd1a3; }
+.swm-card .swm-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(111, 214, 255, 0.16);
+  border: 1px solid rgba(111, 214, 255, 0.16);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.swm-card .swm-stats > div {
+  background: #071224;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.swm-card .swm-stats small {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7fa9cf;
+}
+.swm-card .swm-stats span { font-size: 16px; font-weight: 600; color: #e6f4ff; }
+.swm-card .swm-stats .dim { opacity: 0.3; }
+.swm-card .swm-reach { display: flex; flex-direction: column; gap: 2px; }
+.swm-card .swm-reach a {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #e6f4ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.swm-card .swm-reach a:hover { background: rgba(111, 214, 255, 0.08); }
+.swm-card .swm-reach a.locked { cursor: default; }
+.swm-card .swm-reach a.locked:hover { background: none; }
+.swm-card .swm-reach .d { width: 8px; height: 8px; border-radius: 50%; }
+.swm-card .swm-reach em { font-style: normal; color: #7fa9cf; font-size: 13px; }
+.swm-card .swm-reach .none { color: #7fa9cf; font-size: 14px; margin: 0; }
+
+/* у системы с карточкой заголовок страницы дублируется — прячем */
+.journal-entry-page.swm-has-card .journal-page-header { display: none; }
+.journal-sheet.swm-system-journal .journal-entry-content > .journal-header { display: none; }
+
+/* ------------------------------------------------------------------ */
+/*  Диалоги модуля                                                     */
+/* ------------------------------------------------------------------ */
+.swm-dialog .swm-kick {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7fa9cf;
+  margin: 0;
+}
+.swm-dialog .swm-checks { display: flex; flex-direction: column; gap: 2px; max-height: 320px; overflow: auto; }
+.swm-dialog .swm-check {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+.swm-dialog .swm-check:hover { background: rgba(111, 214, 255, 0.08); }
+.swm-dialog .swm-check em { font-style: normal; color: #7fa9cf; font-size: 13px; }
+.swm-dialog .swm-route-list { margin: 0 0 8px; padding-left: 18px; }
